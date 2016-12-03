@@ -1,0 +1,199 @@
+templates:
+    tv:
+        thetvdb_lookup: yes
+        metainfo_series: yes
+        content_filter:
+            reject:
+                - '*.rar'
+                - '*.zip'
+                - '*.wmv'
+                - '*.avi'
+        series:
+            settings:
+                tv:
+                    #exact: yes
+                    #propers: 3 days
+                    upgrade: yes
+                    #tracking: no
+                    quality: 720p+
+            #accept_all: yes
+            disable:
+                - retry_failed
+            #    - seen
+                - seen_info_hash
+            #seen:
+                #local: yes
+                #fields: 
+                #    - title
+                #    - url
+                #    - original_url
+            tv:
+                - Arrow
+                - Blindspot
+                - DCs Legends of Tomorrow
+                - Designated Survivor
+                - Elementary
+                - Frequency
+                - Lethal Weapon
+                #lethal weapon TVDB ID:    311790
+                #- tvdb_id: 311790
+                - Lucifer
+                - Marvels Agents of S H I E L D
+                - No Tomorrow
+                - Suits
+                - Supergirl
+                - The Flash
+                #- The Flash 2014
+                - The Great Indoors
+                - Timeless
+                - Westworld
+                - Wynonna Earp
+                - Brooklyn Nine-Nine
+                - Gotham
+                - Game of Thromes
+                - Shameless
+                - Smackdown
+                - WWE Smackdown
+                - Raw
+                - WWE Raw
+        #deluge: no
+        add_trackers:
+            - 'udp://tracker.ilibr.org:6969/announce'
+            - 'udp://tracker.ilibr.org:80/announce'
+            - 'udp://tracker.coppersurfer.tk:6969/announce'
+            - 'udp://tracker.coppersurfer.tk:696'
+            - 'udp://tracker.opentrackr.org:1337/announce'
+            - 'udp://tracker.zer0day.to:1337/announce'
+            - 'udp://tracker.leechers-paradise.org:6969'
+            - 'udp://tracker.leechers-paradise.org:6969/announce'
+            - 'udp://9.rarbg.me:2710/announce'
+            - 'udp://p4p.arenabg.ch:1337/announce'
+            - 'udp://p4p.arenabg.com:1337/announce'
+            - 'udp://9.rarbg.to:2710/announce'
+            - 'udp://explodie.org:6969/announce'
+            - 'udp://shadowshq.yi.org:6969/announce'
+            - 'udp://eddie4.nl:6969/announce'
+        
+        
+        transmission:
+            enabled: yes
+            host: localhost
+            port: 9092
+            username: jeff
+            password: QAWSedrf5678
+            magnetization_timeout: 25
+            #addpaused: yes
+            path: 'D:\TV\Airing\{{ series_name }}\Season 0{{ series_season }}'
+            main_file_only: yes
+            include_subs: yes
+            #main_file_ratio: 2.5
+            
+            #file types to skip
+            skip_files:
+                - '*.nfo'
+                - '*.sfv'
+                - '*[sS]ample*'
+                - '*.txt'
+                - '*.jpeg'
+                - '*.jpg'
+            #file types that we want to include
+            include_files:
+             - '*.srt'
+             - '*.sub'
+             - '*.idx'
+             - '*.ass'
+             - '*.ssa'
+             
+             
+             
+        #FUNCTION:    Autodeletes torrents once completed
+        #don't think that we currently want to do this
+        #clean_transmission:
+            #enabled: yes
+            #host: localhost
+            #port: 9092
+            #username: jeff
+            #password: QAWSedrf5678
+            #transmission_seed_limits: yes
+            
+            
+
+#separate tasks for each tracker that we want to parse
+#each tracker is fed the same list of programs,
+#each from the "tv" template created above
+tasks:
+    #EZTV.it tracker
+    eztv:
+        priority: 1
+        rss:
+            url: https://eztv.ag/ezrss.xml
+            link: 
+             - torrent:magnetURI
+             - link
+            ascii: yes
+        template: tv
+        seen:
+            local: yes
+            fields: [title, url, original_url]
+    #ExtraTorrent.cc
+    #also actually called ettv?    who knew!?    
+    etcc:
+        priority: 2
+        rss:
+            url: 'https://extratorrent.cc/rss.xml?type=today&cid=8'
+            #link: torrent:magnetURI
+            ascii: yes
+        template: tv
+        seen:
+            local: yes
+            fields: [title, url, original_url]
+    #custom showrss.info feed
+    showrss:
+        priority: 3
+        rss:
+            url: 'http://showrss.info/user/112448.rss?magnets=true&namespaces=true&name=null&quality=null&re=null'
+            #link: magnet
+            ascii: yes
+        template: tv
+        seen:
+            local: yes
+            fields: [title, url, original_url]
+     #TPB - RSS broken there for some time apparently :C
+#    tpb:
+#        priority: 4
+#        rss:
+#            url: 'https://thepiratebay.org/rss/new/208'
+#            link: magnetURI
+#            ascii: yes
+#        template: tv
+     #kickass torrents - gone, but not forgotten
+#    kat:
+#        priority: 5
+#        rss:
+#            url: 'http://kickass.to/search/ettv/?rss=1'
+# kat uses a funky cdata object for magnets...
+#            link: torrent:magnetURI
+#            ascii: yes
+#        template: tv
+
+
+#what time(s) that we want each thing to run at to get shows as fast as possible
+schedules:
+    # Run at first 10 minutes of each hour starting at 7pm
+    - tasks: [eztv, etcc]
+        schedule:
+            minute: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,42,43,44,45,46,47
+            hour: 19,20,21,22,23,00,01
+            #day_of_week: mon,tue,wed,thu,sun
+    - tasks: [eztv, etcc]
+        schedule:
+            minute: 2,3,4,5,6,7,8,9,10,45,46,53,54,55
+            hour: 02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18
+# Run every task once an hour
+#    - tasks: '*'
+#        interval:
+#            hours: 1
+    # Run every 30 minutes
+#    - tasks: eztv
+#        interval:
+#            minutes: 30
